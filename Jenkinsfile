@@ -44,6 +44,7 @@ pipeline {
                     ) else (
                         echo Chrome not found. Skipping uninstall.
                     )
+                    EXIT /B 0
                     """
                 }
             }
