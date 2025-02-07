@@ -96,7 +96,7 @@ pipeline {
 
     post {
         always {
-            archiveArtifacts artifcats: '**/TestResults/*.trx', allowEmptyArchive: true
+            archiveArtifacts artifacts: '**/TestResults/*.trx', allowEmptyArchive: true
             junit '**/TestResults/*.trx'
         }
         success {
