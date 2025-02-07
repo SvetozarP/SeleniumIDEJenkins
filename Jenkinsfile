@@ -2,7 +2,7 @@ pipeline {
     agent any  // Runs on any available Windows agent
 
     environment {
-        DOTNET_VERSION = '6.0.100'  // Change to your required .NET version
+        DOTNET_VERSION = '6.0.428'  // Change to your required .NET version
         CHROME_VERSION = '133.0.6943.5300'  // Set required Chrome version
         CHROMEDRIVER_VERSION = '133.0.6943.5300'  // Match ChromeDriver to Chrome version
         CHROME_INSTALL_PATH = 'C:\\Program Files\\Google\\Chrome\\Application'
@@ -25,7 +25,8 @@ pipeline {
                     echo '🔧 Installing .NET SDK...'
                     bat """
                     echo Checking .NET version...
-                    choco install dotnet-sdk-${DOTNET_VERSION}
+                    choco install dotnet-sdk-${DOTNET_VERSION} -y
+                    dotnet --version
                     """
                 }
             }
