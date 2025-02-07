@@ -1,0 +1,46 @@
+# Ignore Visual Studio & Rider temporary files
+.vs/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Ignore build outputs
+bin/
+obj/
+out/
+
+# Ignore NuGet packages
+packages/
+*.nupkg
+project.lock.json
+project.assets.json
+
+# Ignore logs, database files, and coverage reports
+*.log
+*.tlog
+*.pdb
+*.mdf
+*.ldf
+*.coverage
+TestResults/
+coverage/
+
+# Ignore user-specific files
+*.vscode/
+*.DS_Store
+*.env
+*.ps1
+
+# Ignore publish artifacts
+publish/
+app.publish/
+
+# Ignore dependencies for .NET Core
+project.lock.json
+global.json
+
+# Ignore Rider & JetBrains settings
+.idea/
+*.sln.iml
