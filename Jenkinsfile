@@ -2,10 +2,11 @@ pipeline {
     agent any  // Runs on any available Windows agent
 
     environment {
-        DOTNET_VERSION = '6.0'  // Change to your required .NET version
+        DOTNET_VERSION = '6.0.100'  // Change to your required .NET version
         CHROME_VERSION = '133.0.6943.5300'  // Set required Chrome version
         CHROMEDRIVER_VERSION = '133.0.6943.5300'  // Match ChromeDriver to Chrome version
-        SOLUTION_FILE = 'SeleniumIde.sln'  // Change to your solution file
+        CHROME_INSTALL_PATH = 'C:\\Program Files\\Google\\Chrome\\Application'
+        CHROMEDRIVER_PATH = '"C:\\Program Files\\Google\\Chrome\\Application\\chromedriver.exe"'
     }
 
     stages {
@@ -13,7 +14,7 @@ pipeline {
             steps {
                 script {
                     echo '🔄 Checking out the code...'
-                    checkout scm
+                    git branch: 'main', url: 'https://github.com/SvetozarP/SeleniumIDEJenkins.git'
                 }
             }
         }
@@ -24,8 +25,7 @@ pipeline {
                     echo '🔧 Installing .NET SDK...'
                     bat """
                     echo Checking .NET version...
-                    dotnet --version || choco install dotnet-sdk-${DOTNET_VERSION} -y
-                    dotnet --version
+                    choco install dotnet-sdk-${DOTNET_VERSION}
                     """
                 }
             }
@@ -37,7 +37,7 @@ pipeline {
                     echo '❌ Uninstalling current Chrome version...'
                     bat """
                     echo Checking if Chrome is installed...
-                    wmic product where "name like 'Google Chrome%%'" call uninstall /nointeractive || echo Chrome not found
+                    choco uninstall googlechrome -y
                     """
                 }
             }
@@ -48,7 +48,7 @@ pipeline {
                 script {
                     echo '🌍 Installing required Chrome version...'
                     bat """
-                    choco install googlechrome --version=${CHROME_VERSION} -y
+                    choco install googlechrome --version=${CHROME_VERSION} -y --alllow-downgrade --ignore-checksums
                     """
                 }
             }
@@ -56,16 +56,15 @@ pipeline {
 
         stage('Download and Install ChromeDriver') {
             steps {
-                script {
-                    echo '🚗 Downloading ChromeDriver...'
-                    bat """
-                    powershell -Command "& {Invoke-WebRequest -Uri https://chromedriver.storage.googleapis.com/${CHROMEDRIVER_VERSION}/chromedriver_win32.zip -OutFile chromedriver.zip}"
-                    powershell -Command "& {Expand-Archive -Path chromedriver.zip -DestinationPath C:\\chromedriver\\ -Force}"
-                    setx PATH "%PATH%;C:\\chromedriver\\"
-                    """
-                }
+                bat '''
+                echo Downloading ChromeDriver version %CHROMEDRIVER_VERSION%
+                powershell -command "Invoke-WebRequest -Uri https://chromedriver.storage.googleapis.com/%CHROMEDRIVER_VERSION%/chromedriver_x64.zip -OutFile chromedriver.zip -UseBasicParsing"
+                powershell -command "Expand-Archive -Path chromedriver.zip -DestinationPath ."
+                powershell -command "Move-Item -Path .\\chromedriver.exe -Destination '%CHROME_INSTALL_PATH%\\chromedriver.exe' -Force"
+                '''
             }
         }
+
 
         stage('Restore Dependencies') {
             steps {
@@ -89,13 +88,17 @@ pipeline {
             steps {
                 script {
                     echo '🧪 Running tests...'
-                    bat "dotnet test ${SOLUTION_FILE} --no-build --verbosity normal"
+                    bat 'dotnet test ${SOLUTION_FILE} --logger "trx;logfilename=TestResults.trx"'
                 }
             }
         }
     }
 
     post {
+        always {
+            archiveArtifacts artifcats: '**/TestResults/*.trx', allowEmptyArchive: true
+            junit '**/TestResults/*.trx'
+        }
         success {
             echo '✅ Build and Tests Passed Successfully!'
         }
