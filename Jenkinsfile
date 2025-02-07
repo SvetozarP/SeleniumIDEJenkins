@@ -35,9 +35,15 @@ pipeline {
         stage('Uninstall Current Chrome') {
             steps {
                 script {
-                    echo '❌ Checking if Chrome is installed before uninstalling...'
+                    echo '❌ Checking and force uninstalling Chrome if found...'
                     bat """
-                    choco list --local-only | findstr /I googlechrome && choco uninstall googlechrome -y || echo Chrome not found, skipping uninstall.
+                    choco list --local-only | findstr /I googlechrome > nul
+                    if %ERRORLEVEL% EQU 0 (
+                        echo Google Chrome found. Uninstalling...
+                        choco uninstall googlechrome -y
+                    ) else (
+                        echo Chrome not found. Skipping uninstall.
+                    )
                     """
                 }
             }
